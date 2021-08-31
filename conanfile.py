@@ -1,4 +1,4 @@
-from conans import ConanFile, CMake
+from conans import ConanFile, CMake, errors
 import os
 
 def merge_two_dicts(x, y):
@@ -142,7 +142,7 @@ class HelloConan(ConanFile):
         "skia_enable_pdf" : False,
         "skia_enable_skgpu_v1" : True,
         "skia_enable_skgpu_v2" : False,
-        "skia_enable_skottie" : True,
+        "skia_enable_skottie" : False,
         "skia_enable_skparagraph" : True,
         "skia_enable_skrive" : True,
         "skia_enable_skshaper" : True,
@@ -196,7 +196,7 @@ class HelloConan(ConanFile):
         "skia_use_system_freetype2" : True,
         "skia_use_system_harfbuzz" : False,
         "skia_use_system_icu" : True,
-        "skia_use_system_libjpeg_turbo" : True,
+        "skia_use_system_libjpeg_turbo" : False,
         "skia_use_system_libpng" : True,
         "skia_use_system_libwebp" : True,
         "skia_use_system_zlib" : True,
@@ -217,17 +217,19 @@ class HelloConan(ConanFile):
     def requirements(self):
         if self.options.skia_use_system_icu and self.options.skia_use_icu:
             self.requires("icu/69.1")
-        self.requires("libwebp/1.2.0")
-        self.requires("freetype/2.10.4")
+        if self.options.skia_use_system_libwebp:
+            self.requires("libwebp/1.2.0")
+        if self.options.skia_use_freetype:
+            self.requires("freetype/2.10.4")
         if self.options.skia_use_system_libjpeg_turbo:
-            self.requires("libjpeg-turbo/1.5.2@bincrafters/stable")
+            self.requires("libjpeg-turbo/2.1.1")
         if self.options.skia_use_system_libpng:
-            self.requires("libpng/1.6.36@bincrafters/stable")
+            self.requires("libpng/1.6.37")
     
     def configure(self):
-        if self.settings.os == "Linux":
-            print("Its Linux \n")
-
+        if self.options.skia_use_metal:
+            if not self.settings.os == "iOS" and not self.settings.os == "Macos":
+                raise errors.ConanInvalidConfiguration("Metal is only supported on darwin platforms: %s" % self.settings.os)
     def build(self):
         opts=[]
         for k,v in self.options.items():
@@ -239,7 +241,6 @@ class HelloConan(ConanFile):
             opts = ""
         self.run('cd skia && bin/gn gen out/conan-build %s' %(opts))
         self.run("ninja -C skia/out/conan-build")
-        #self.run("python3 headerChange.py")
 
     def package(self):
         self.copy("*.h", dst="include", src="skia", keep_path=True)
