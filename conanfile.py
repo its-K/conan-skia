@@ -231,7 +231,14 @@ class HelloConan(ConanFile):
             if not self.settings.os == "iOS" and not self.settings.os == "Macos":
                 raise errors.ConanInvalidConfiguration("Metal is only supported on darwin platforms: %s" % self.settings.os)
     def build(self):
-        opts=[]
+        flags = []
+        for k,v in self.deps_cpp_info.dependencies:
+            self.output.info("Adding dependency: %s - %s" %(k, v.rootpath))
+            flags += ['\\"-I%s/include\\"' % (v.rootpath), '\\"-I%s/include/%s\\"' % (v.rootpath, k)]
+
+        flag_str = 'extra_cflags_cc=[%s]' % ",".join(flags)
+
+        opts = [flag_str]
         for k,v in self.options.items():
             if k in self.skia_options:
                 opts += [("%s=%s" % (k,v)).lower()]
