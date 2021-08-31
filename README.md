@@ -22,7 +22,7 @@ If you wish to report an issue or make a request for a package, please do so her
 If you handle multiple dependencies in your project is better to add a *conanfile.txt*
 
     [requires]
-    skia/master
+    skia/1.0
 
     [generators]
     txt
@@ -43,7 +43,7 @@ Currenly this package works for and provides packages for MacOS and Linux. Pull 
 The following command both runs all the steps of the conan file, and publishes the package to the local system cache. This includes all necessary requirements
 
     # macOS
-	$ conan create . -o skia:skia_enable_gpu=False --build missing
+	$ conan create . -o skia:skia_use_metal=True --build missing
     # linux
     $ conan create . --build missing
 
