@@ -1,4 +1,4 @@
-from conans import ConanFile, CMake, errors
+from conans import ConanFile, CMake, errors, tools
 import os
 
 def merge_two_dicts(x, y):
@@ -8,7 +8,7 @@ def merge_two_dicts(x, y):
 
 class HelloConan(ConanFile):
     name = "skia"
-    version = "1.0"
+    version = "1.1"
     license = "MIT License"
     email = "kishore4110@gmail.com"
     url = "https://github.com/its-k/conan-skia"
@@ -92,7 +92,6 @@ class HelloConan(ConanFile):
         "skia_use_metal" : [True,False],
         "skia_use_ndk_images" : [True,False],
         "skia_use_piex" : [True,False],
-        "skia_use_runtime_icu" : [True,False],
         "skia_use_sfml" : [True,False],
         "skia_use_sfntly" : [True,False],
         "skia_use_system_expat" : [True,False],
@@ -175,7 +174,7 @@ class HelloConan(ConanFile):
         "skia_use_freetype_woff2" : False,
         "skia_use_gl" : False,
         "skia_use_harfbuzz" : True,
-        "skia_use_icu" : True,
+        "skia_use_icu" : False,
         "skia_use_libfuzzer_defaults" : True,
         "skia_use_libgifcodec" : True,
         "skia_use_libheif" : False,
@@ -189,13 +188,12 @@ class HelloConan(ConanFile):
         "skia_use_metal" : False,
         "skia_use_ndk_images" : False,
         "skia_use_piex" : True,
-        "skia_use_runtime_icu" : False,
         "skia_use_sfml" : False,
         "skia_use_sfntly" : True,
         "skia_use_system_expat" : True,
         "skia_use_system_freetype2" : True,
         "skia_use_system_harfbuzz" : False,
-        "skia_use_system_icu" : True,
+        "skia_use_system_icu" : False,
         "skia_use_system_libjpeg_turbo" : False,
         "skia_use_system_libpng" : True,
         "skia_use_system_libwebp" : True,
@@ -239,11 +237,22 @@ class HelloConan(ConanFile):
         flag_str = 'extra_cflags_cc=[%s]' % ",".join(flags)
 
         opts = [flag_str]
+
+        if self.settings.os=="Android":
+            opts+=[("ndk=\"%s\"" % (tools.get_env("ANDROID_NDK_ROOT")))]
+            if self.settings.arch=="armv7" or self.settings.arch=="armv8":
+                opts+=[("target_cpu=\"arm\"")]
+            if self.settings.arch=="x86_64":
+                opts+=[("target_cpu=\"x64\"")]
+            if self.settings.arch=="x86":
+                opts+=[("target_cpu=\"x86\"")]
+            opts+=[("is_debug=false")]
+
         for k,v in self.options.items():
             if k in self.skia_options:
                 opts += [("%s=%s" % (k,v)).lower()]
         if len(opts) > 0:
-            opts = '"--args=%s"' % " ".join(opts)
+            opts = '--args=\'%s\'' % " ".join(opts)
         else:
             opts = ""
         self.run('cd skia && bin/gn gen out/conan-build %s' %(opts))

@@ -1,0 +1,14 @@
+[settings]
+    os=Android
+    os.api_level=21
+    os_build=Linux
+    arch=armv8
+    arch_build=x86_64
+    compiler=clang
+    compiler.version=12
+    compiler.libcxx=libc++
+    build_type=Debug
+[build_requires]
+[options]
+[env]
+ANDROID_NDK_ROOT=/home/local/ZOHOCORP/kishore-pt4271/Downloads/android-ndk-r23
